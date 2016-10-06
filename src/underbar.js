@@ -180,13 +180,14 @@
   //   }); // should be 5, regardless of the iterator function passed in
   //          No accumulator is given so the first element is used.
   _.reduce = function(collection, iterator, accumulator) {
-    var copiedCollection = collection.slice();
+    //var copiedCollection = collection.slice();
 
     if(accumulator === undefined) {
-      accumulator = copiedCollection.shift();
+      accumulator = collection[0];
+      collection = collection.slice(1);
     }
 
-    _.each(copiedCollection, function(elem, index) {
+    _.each(collection, function(elem, index) {
       accumulator = iterator(accumulator, elem);
     });
 
