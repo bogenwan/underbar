@@ -276,7 +276,7 @@
   // Like extend, but doesn't ever overwrite a key that already
   // exists in obj
   _.defaults = function(obj) {
-
+    console.log("Hi")
   };
 
 
