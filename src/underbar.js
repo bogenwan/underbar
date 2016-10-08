@@ -93,14 +93,17 @@
   _.reject = function(collection, test) {
     // TIP: see if you can re-use _.filter() here, without simply
     // copying code in and modifying it
-    var result = [];
+    // var result = [];
 
-    _.filter(collection, function(elem, index) {
-      if(!test(elem)) {
-        result.push(elem);
-      }
+    // _.filter(collection, function(elem, index) {
+    //   if(!test(elem)) {
+    //     result.push(elem);
+    //   }
+    // });
+    // return result;
+    return _.filter(collection, function(elem) {
+      return !test(elem)
     });
-    return result;
   };
 
   // Produce a duplicate-free version of the array.
@@ -117,7 +120,7 @@
       //storage object to keep track of uniqueness
       if(!storage[elem]) {
         //if don't exist then save elem as object property as tracker
-        storage[elem] = 1
+        storage[elem] = 1;
         //and push the elem to result
         result.push(elem);
       }
@@ -206,28 +209,34 @@
     }, false);
   };
 
-
   // Determine whether all of the elements match a truth test.
   _.every = function(collection, iterator) {
     // TIP: Try re-using reduce() here.
     return _.reduce(collection, function(accumulator, currElem) {
       if(iterator === undefined) {
         if(currElem !== accumulator){
-          accumulator = false
+          accumulator = false;
         }
       }
       else if(!iterator(currElem, accumulator)) {
-        accumulator = false
+        accumulator = false;
       }
-      return accumulator
-    }, true)
+      return accumulator;
+    }, true);
   };
 
   // Determine whether any of the elements pass a truth test. If no iterator is
   // provided, provide a default one
   _.some = function(collection, iterator) {
     // TIP: There's a very clever way to re-use every() here.
-
+    return _.reduce(collection, function(accumulator, currElem) {
+      if(_.every(currElem, function(currElem) {
+        currElem !== false
+      })) {
+        return true;
+      }
+      return accumulator
+    }, false)
   };
 
 
@@ -250,11 +259,24 @@
   //     bla: "even more stuff"
   //   }); // obj1 now contains key1, key2, key3 and bla
   _.extend = function(obj) {
+    var extenedObj = obj
+    //we need to create a array of the argument objects
+    var argumentObj = Array.prototype.slice.call(arguments, 1);
+    //travers through the lise of arguments object and get access to each object
+    _.each(argumentObj, function(argObj, index) {
+      //travers through the argument object to access the values
+      for(var key in argObj) {
+        //assign the argument kay value pair to the original obj key value
+        extenedObj[key] = argObj[key]
+      }
+    })
+    return extenedObj;
   };
 
   // Like extend, but doesn't ever overwrite a key that already
   // exists in obj
   _.defaults = function(obj) {
+
   };
 
 
@@ -307,7 +329,14 @@
   // parameter. For example _.delay(someFunction, 500, 'a', 'b') will
   // call someFunction('a', 'b') after 500ms
   _.delay = function(func, wait) {
-    setTimeout(function() {func()}, wait)
+    //copied of argument but filter out the first 2 arguments
+    var copiedArguments = Array.prototype.slice.call(arguments, 2)
+      //use setTimeout method to delay time and to invoke function
+      //we need a wraper function so the argument function can be sucessfully pass in
+      //with out being invoked before it is passed in
+      //also since the arguments to be pass in to the inner function is an array, not a single value
+      //we can can't use .call with the function, but use .apply for the function and pass in the array arguments
+    return setTimeout(function() {func.apply(this, copiedArguments)}, wait)
   };
 
 
@@ -322,6 +351,19 @@
   // input array. For a tip on how to make a copy of an array, see:
   // http://mdn.io/Array.prototype.slice
   _.shuffle = function(array) {
+    //create a copied array
+    var copiedArray = Array.prototype.slice.call(array)
+    //create a temp value for swapping
+    var temp;
+    //create a shuffled index
+    var shuffledIndex = Math.floor(Math.random() * copiedArray.length);
+    //travers through the original array
+    for(var i = 0; i < copiedArray.length; i++) {
+      temp = copiedArray[i]
+      copiedArray[i] = copiedArray[shuffledIndex]
+      copiedArray[shuffledIndex] = temp
+    }
+    return copiedArray;
   };
 
 
