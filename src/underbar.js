@@ -229,16 +229,30 @@
   // provided, provide a default one
   _.some = function(collection, iterator) {
     // TIP: There's a very clever way to re-use every() here.
-    return _.reduce(collection, function(accumulator, currElem) {
-      if(_.every(currElem, function(currElem) {
-        currElem !== false
-      })) {
-        return true;
-      }
-      return accumulator
-    }, false)
-  };
-
+    //start with a false statement and if one element is true it will return true
+    var state = false;
+    //check if iterator is passed in
+    if(iterator === undefined){
+      //if not passed in then perform compairson to the element itself
+      _.every(collection, function(elem) {
+        if(elem) {
+          //if true set state to true
+          state = true;
+        }
+      });
+      //but if iterator is passed in
+    } else {
+      //go through the element and compair with iterator
+      _.every(collection, function(elem) {
+        if(iterator(elem)) {
+          //if elem is true set state to true
+          state = true;
+        }
+      });
+    }
+      //return state back to user
+      return state;
+    };
 
   /**
    * OBJECTS
@@ -259,24 +273,39 @@
   //     bla: "even more stuff"
   //   }); // obj1 now contains key1, key2, key3 and bla
   _.extend = function(obj) {
-    var extenedObj = obj
+    var extenedObj = obj;
     //we need to create a array of the argument objects
     var argumentObj = Array.prototype.slice.call(arguments, 1);
-    //travers through the lise of arguments object and get access to each object
+    //travers through the list of arguments object and get access to each object
     _.each(argumentObj, function(argObj, index) {
       //travers through the argument object to access the values
       for(var key in argObj) {
         //assign the argument kay value pair to the original obj key value
-        extenedObj[key] = argObj[key]
+        extenedObj[key] = argObj[key];
       }
-    })
+    });
     return extenedObj;
   };
 
   // Like extend, but doesn't ever overwrite a key that already
   // exists in obj
   _.defaults = function(obj) {
-    console.log("Hi")
+    //create and variable to store extended key value but still have original object property
+    var extenedObj = obj;
+    //create a variable that saves the passed in argument object
+    var argumentObj = Array.prototype.slice.call(arguments, 1);
+    //travers through the argeument object list
+    _.each(argumentObj, function(argObj, index) {
+      //travers throught the argument object to access the key
+      for(var key in argObj) {
+      //check if extended object have the same property
+      if(!(key in extenedObj)){
+          //assign the argument kay value pair to the original obj key value
+          extenedObj[key] = argObj[key];
+        }
+      }
+    })
+    return extenedObj;
   };
 
 
@@ -320,6 +349,24 @@
   // already computed the result for the given argument and return that value
   // instead if possible.
   _.memoize = function(func) {
+    //create a cache object to store the information
+    var cache = {};
+    //memoize should return a function
+    return function(){
+
+    //create a copied array of arguments list
+    var argList = [Array.prototype.slice.call(arguments), arguments.length];
+    //check to see if argument lise existed in the cache property
+    if(!cache[argList]){
+      //assign the argList to be the key and the invoked value to be the value of cache
+      cache[argList] = func.apply(this, arguments)
+      //return the invoked vale from cache memory
+        return cache[argList]
+      } else {
+        //just return the cached save value
+        return cache[argList]
+      }
+    }
   };
 
   // Delays a function for the given number of milliseconds, and then calls
@@ -330,14 +377,14 @@
   // call someFunction('a', 'b') after 500ms
   _.delay = function(func, wait) {
     //copied of argument but filter out the first 2 arguments
-    var copiedArguments = Array.prototype.slice.call(arguments, 2)
+    var copiedArguments = Array.prototype.slice.call(arguments, 2);
       //use setTimeout method to delay time and to invoke function
       //we need a wraper function so the argument function can be sucessfully pass in
       //with out being invoked before it is passed in
       //also since the arguments to be pass in to the inner function is an array, not a single value
       //we can can't use .call with the function, but use .apply for the function and pass in the array arguments
-    return setTimeout(function() {func.apply(this, copiedArguments)}, wait)
-  };
+      return setTimeout(function() {func.apply(this, copiedArguments)}, wait);
+    };
 
 
   /**
@@ -352,16 +399,16 @@
   // http://mdn.io/Array.prototype.slice
   _.shuffle = function(array) {
     //create a copied array
-    var copiedArray = Array.prototype.slice.call(array)
+    var copiedArray = Array.prototype.slice.call(array);
     //create a temp value for swapping
     var temp;
     //create a shuffled index
     var shuffledIndex = Math.floor(Math.random() * copiedArray.length);
     //travers through the original array
     for(var i = 0; i < copiedArray.length; i++) {
-      temp = copiedArray[i]
-      copiedArray[i] = copiedArray[shuffledIndex]
-      copiedArray[shuffledIndex] = temp
+      temp = copiedArray[i];
+      copiedArray[i] = copiedArray[shuffledIndex];
+      copiedArray[shuffledIndex] = temp;
     }
     return copiedArray;
   };
@@ -378,6 +425,23 @@
   // Calls the method named by functionOrKey on each value in the list.
   // Note: You will need to learn a bit about .apply to complete this.
   _.invoke = function(collection, functionOrKey, args) {
+    //create a result array
+    var result = [];
+      //loop through the collection to access each element
+      for(var i = 0; i < collection.length; i++) {
+    //check to see if functionOrKey is a 'function' or 'method'
+    if(typeof functionOrKey === 'function') {
+      //if it is method then pass the arguments to the function useing apply()
+      result.push(functionOrKey.apply(collection[i]));
+    }
+    //but if functionOrKey is a method
+    if(typeof functionOrKey === 'string') {
+        //then call and invoke the method property from each object
+        result.push(collection[i][functionOrKey]());
+      }
+    }
+    //return an array of invoked value
+    return result;
   };
 
   // Sort the object's values by a criterion produced by an iterator.
@@ -400,6 +464,24 @@
   //
   // Hint: Use Array.isArray to check if something is an array
   _.flatten = function(nestedArray, result) {
+    //create result array
+    var result = [];
+    //first we have to iterate through the nested array
+    for(var i = 0; i < nestedArray.length; i++) {
+      //SET BASE CASE!!!!!
+      //check to see if elem is not an array
+      if(!Array.isArray(nestedArray[i])) {
+        //push the element to result
+        result.push(nestedArray[i])
+        //but if elem is an array
+      } else {
+        //pass elem in back to flatten function to recurse and concat the
+        //value to the result
+        result = result.concat(_.flatten(nestedArray[i]))
+      }
+    }
+    //return result back to user
+    return result;
   };
 
   // Takes an arbitrary number of arrays and produces an array that contains
